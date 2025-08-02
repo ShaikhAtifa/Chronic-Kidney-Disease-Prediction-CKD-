@@ -36,15 +36,12 @@ import matplotlib.pyplot as plt
 
 uploaded= files.upload()
 df=pd.read_csv('kidney_disease.csv')
-
 df.columns=df.columns.str.strip().str.lower().str.replace(' ','_')
-
 missed=df.isnull().sum()
 print(missed)
 num_cols=df.select_dtypes(include=['float64','int64']).columns
 for cols in num_cols:
   df[cols].fillna(df[cols].median(), inplace=True)
-
 cat_cols =df.select_dtypes(include='object').columns
 for cols in cat_cols:
   df[cols].fillna(df[cols].mode()[0], inplace=True)
@@ -53,71 +50,57 @@ for cols in cat_cols:
 """**Descriptive statistical Analysis**"""
 
 df.describe()
-
 df.describe(include='object')
-
 plt.figure(figsize=(8,4))
 sns.histplot(df['age'],kde=True,bins=30,color='skyblue')
 plt.title('Distribution of Age')
 plt.xlabel('Age')
 plt.ylabel('Density')
 plt.show()
-
 plt.figure(figsize=(6,4))
 sns.countplot(data=df, x='classification',palette='Set2')
 plt.title('Target Class Distribution')
 plt.xlabel('Classification')
 plt.ylabel('Count')
 plt.show()
-
 plt.figure(figsize=(8,4))
 sns.boxplot(data=df, x='classification',y='age',palette='coolwarm')
 plt.title('Age V/S Classification')
 plt.xlabel('Classification')
 plt.ylabel('Age')
 plt.show()
-
 count_cols=['bp','sg','bgr','bu','sc','sod','pot','hemo']
 for col in count_cols:
   plt.figure(figsize=(8,4))
   sns.scatterplot(data=df, x='age', y=col, hue='classification')
   plt.title(f'Age V/S {col}')
   plt.show()
-
 df_numeric=df.select_dtypes(include=['float64','int64'])
 corr_matrix=df_numeric.corr()
 plt.figure(figsize=(10,8))
 sns.heatmap(corr_matrix,annot=True,cmap='coolwarm',fmt='.2f',linewidths=0.5)
 plt.title("Correlation HeatMap")
 plt.show()
-
 print(df.columns.tolist())
-
 df['classification']=df['classification'].replace(2,1)
 print(np.unique(df['classification'],return_counts=True))
-
 df['classification']=df['classification'].str.strip().str.lower()
 df['classification']=df['classification'].replace({'ckd':1,'notckd':0})
 print(np.unique(df['classification'],return_counts=True))
-
 X=df.drop(['classification'],axis=1)
 Y=df['classification']
 X_train,X_test,Ytrain,Y_test=train_test_split(X,Y,test_size=0.2,random_state=42)
-
 le=LabelEncoder()
 for col in df.columns:
   if df[col].dtype=='object' and col !='classifictaion':
     df[col]=le.fit_transform(df[col].astype(str))
-
 X=df.drop(['classification'],axis=1)
 Y=df['classification']
 X_train,X_test,Y_train,Y_test=train_test_split(X,Y,test_size=0.2,random_state=42)
 sc=StandardScaler()
 X_train_scaled=sc.fit_transform(X_train)
 X_test_scaled=sc.transform(X_test)
-
 """Logistic Regression"""
-
 lgr=LogisticRegression()
 lgr.fit(X_train_scaled,Y_train)
 lgr_pred=lgr.predict(X_test_scaled)
@@ -126,7 +109,6 @@ print(confusion_matrix(Y_test,lgr_pred))
 print(classification_report(Y_test,lgr_pred))
 
 """Decision TREEE"""
-
 dtc=DecisionTreeClassifier()
 dtc.fit(X_train_scaled,Y_train)
 
@@ -149,7 +131,7 @@ sample_df.loc[0]=[0.0]*len(X.columns)
 sample_df.at[0,'age']=48
 sample_df.at[0,'bp']=80
 sample_df.at[0, 'sg'] = 1.02
-sample_df.at[0, 'rbc'] = 1         # If this column is encoded
+sample_df.at[0, 'rbc'] = 1         
 sample_df.at[0, 'pc'] = 1
 sample_df.at[0, 'pcc'] = 0
 sample_df.at[0, 'ba'] = 0
@@ -158,7 +140,6 @@ sample_df.at[0, 'dm'] = 1
 sample_df.at[0, 'appet'] = 1
 sample_df.at[0, 'ane'] = 0
 
-# Step 3: Scale and predict
 sample_scaled = sc.transform(sample_df)
 
 print("Logistic Regression:", lgr.predict(sample_scaled)[0])
@@ -200,14 +181,12 @@ print("Decision Tree")
 print(confusion_matrix(Y_test,y_pred_dtc))
 print(classification_report(Y_test,y_pred_dtc))
 
-# Already trained as rfc
 y_pred_rfc = rfc.predict(X_test_scaled)
 
 print("🔹 Random Forest Evaluation")
 print(confusion_matrix(Y_test, y_pred_rfc))
 print(classification_report(Y_test, y_pred_rfc))
 
-# Helper function to plot confusion matrix
 def plot_confusion_matrix(y_true, y_pred, model_name):
     cm = confusion_matrix(y_true, y_pred)
     plt.figure(figsize=(8, 6))
@@ -221,22 +200,18 @@ def plot_confusion_matrix(y_true, y_pred, model_name):
 
 # ----------- Predictions for each model -------------
 
-# Logistic Regression
 y_pred_lr = lgr.predict(X_test_scaled)
 plot_confusion_matrix(Y_test, y_pred_lr, 'Logistic Regression')
 print('\n')
 
-# Decision Tree
 y_pred_dt = dtc.predict(X_test_scaled)
 plot_confusion_matrix(Y_test, y_pred_dt, 'Decision Tree Classifier')
 print('\n')
 
-# Random Forest
 y_pred_rf = rfc.predict(X_test_scaled)
 plot_confusion_matrix(Y_test, y_pred_rf, 'Random Forest Classifier')
 print('\n')
 
-# ANN (assuming ann_model is trained and outputs probabilities)
 y_pred_ann = (ann.predict(X_test_scaled) > 0.5).astype(int)
 plot_confusion_matrix(Y_test, y_pred_ann, 'Artificial Neural Network (ANN)')
 print('\n')
@@ -255,11 +230,9 @@ for name, model in models:
   results.append(df_cv)
   from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
-# ANN predictions
 y_pred_ann_probs = ann.predict(X_test_scaled)
 y_pred_ann = (y_pred_ann_probs > 0.5).astype(int)
 
-# Create one-row DataFrame for ANN manually
 ann_scores = {
     'test_accuracy': [accuracy_score(Y_test, y_pred_ann)],
     'test_precision_weighted': [precision_score(Y_test, y_pred_ann, average='weighted')],
@@ -269,10 +242,8 @@ ann_scores = {
     'model': ['ANN']
 }
 results.append(pd.DataFrame(ann_scores))
-# Combine all results
 final_results_df = pd.concat(results, ignore_index=True)
 
-# Melt the DataFrame to long format for Seaborn
 results_long = final_results_df.melt(id_vars='model', var_name='metric', value_name='value')
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -298,7 +269,6 @@ print("Original column names:\n",df.columns.tolist())
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Only use numeric features
 numeric_df = df.select_dtypes(include=['float64', 'int64'])
 corr_matrix = numeric_df.corr()
 
@@ -312,29 +282,19 @@ plt.figure(figsize=(8, 4))
 sns.boxplot(x='classification', y='bu', data=df)
 plt.title('Blood Urea vs CKD Classification')
 
-# Copy original DataFrame
 df_encoded = df.copy()
 
-# Encode categorical features (if not already encoded)
 for col in df_encoded.select_dtypes(include='object').columns:
     df_encoded[col] = LabelEncoder().fit_transform(df_encoded[col].astype(str))
 
-# Separate features and target
 X = df_encoded.drop('classification', axis=1)
 y = df_encoded['classification']
 
-# Impute missing values in X (recommended: use median for numeric + mode for categorical)
-imputer = SimpleImputer(strategy='most_frequent')  # or use 'mean' for numeric-only
+imputer = SimpleImputer(strategy='most_frequent') 
 X_imputed = pd.DataFrame(imputer.fit_transform(X), columns=X.columns)
 
-# Feature selection using chi2
 chi_selector = SelectKBest(score_func=chi2, k='all')
 chi_selector.fit(X_imputed, y)
-
-# Plot feature scores
-import pandas as pd
-import matplotlib.pyplot as plt
-
 chi_scores = pd.Series(chi_selector.scores_, index=X.columns)
 chi_scores.sort_values(ascending=False).plot(kind='bar', figsize=(12, 5), title='Chi-Square Feature Scores')
 plt.ylabel("Chi-Square Score")
@@ -393,30 +353,20 @@ for col in X_selected.columns:
     else:
         X_selected[col].fillna(X_selected[col].median(), inplace=True)
 print("Remaining nulls:", X_selected.isnull().sum().sum())  # Should be 0
-
-# Label Encoding if needed
-from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 for col in X_selected.columns:
     if X_selected[col].dtype == 'object':
         X_selected[col] = le.fit_transform(X_selected[col].astype(str))
-
-# Split & Scale
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 
 X_train, X_test, y_train, y_test = train_test_split(X_selected, y, test_size=0.2, random_state=42)
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Train
-from sklearn.linear_model import LogisticRegression
 model = LogisticRegression()
 model.fit(X_train_scaled, y_train)
 
 y_pred=model.predict(X_test_scaled)
-# Evaluation
 print("Confusion Matrix:")
 print(confusion_matrix(y_test, y_pred))
 
@@ -427,8 +377,6 @@ print("\nAccuracy:", accuracy_score(y_test, y_pred))
 print("Precision:", precision_score(y_test, y_pred))
 print("Recall:", recall_score(y_test, y_pred))
 print("F1 Score:", f1_score(y_test, y_pred))
-
-import pickle
 
 with open('model.pkl', 'wb') as model_file:
     pickle.dump(model, model_file)
